@@ -1,4 +1,6 @@
-from pathlib import Path
+from register import Register
 
-data = Path('/roms/BLINKY').read_bytes()
-print(data)
+r = Register('r')
+print(r.value)
+r.value -= 1
+print(r.value)
