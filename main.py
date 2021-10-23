@@ -1,5 +1,8 @@
+from cpu import CPU
+
 def main():
-  print('main')
+  cpu = CPU()
+  print(cpu.registers)
 
 if __name__ == '__main__':
   main()
