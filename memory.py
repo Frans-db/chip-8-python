@@ -1,7 +1,13 @@
-class Memory():
+class Memory:
   def __init__(self, size: int = 4096) -> None:
     self.memory = [0] * size
     self.initialize_digits()
+
+  def __getitem__(self, key):
+    return self.memory[key]
+
+  def __setitem__(self, key, value):
+    self.memory[key] = value & 0xFF
 
   def initialize_digits(self):
     digits = [
