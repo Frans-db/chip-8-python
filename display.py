@@ -17,7 +17,7 @@ class Display:
   def draw_pixel(self, x, y, value):
     new_x = x % self.width
     new_y = y % self.height
-    print(f'({new_x}, {new_y}): {self.display[new_y][new_x]} => {self.display[new_y][new_x] ^ value}')
+    # print(f'({new_x}, {new_y}): {self.display[new_y][new_x]} => {self.display[new_y][new_x] ^ value}')
     if new_x < 0 or new_y < 0:
       raise Exception('draw outside bounds')
     old = self.display[new_y][new_x]

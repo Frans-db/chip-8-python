@@ -30,9 +30,7 @@ class CPU:
 
   def step(self):
     opcode = self.memory[self.PC.value] << 8 | self.memory[self.PC.value + 1]
-    # utils.pp_opcode(opcode)
     self.execute_opcode(opcode)
-    self.PC.value += 2
     return opcode, utils.convert_opcode(opcode, include_opcode=False)
 
   def load_rom(self, rom):
@@ -41,6 +39,7 @@ class CPU:
 
   def execute_opcode(self, opcode) -> None:
     print(f'{self.PC.value} - {utils.convert_opcode(opcode)}')
+    self.PC.value += 2
     identifier = opcode & 0xF000
     x = (opcode & 0x0F00) >> 8
     y = (opcode & 0x00F0) >> 4
@@ -50,12 +49,15 @@ class CPU:
       elif opcode & 0x0FFF == 0x00EE: # 00EE - RET
         self.PC.value = self.stack[self.SP.value]
         self.SP.value -= 1
+        # return
     elif identifier == 0x1000: # 1nnn - JP ADDR
       self.PC.value = opcode & 0x0FFF
+      return
     elif identifier == 0x2000: # 2nnn - CALL addr
       self.SP.value += 1
       self.stack[self.SP.value] = self.PC.value
       self.PC.value = opcode & 0x0FFF
+      # return
     elif identifier == 0x3000: # 3xkk - SE Vx, byte
       if self.registers[x].value == opcode & 0x00FF:
         self.PC.value += 2
@@ -118,9 +120,9 @@ class CPU:
           if self.display.draw_pixel(self.registers[x].value+j, self.registers[y].value+i, int(value)):
             self.registers[0xF].value = 1
         sprite += f'{row[:-1]}\n'
-      print()
-      print(self.I.value, self.registers[x].value, self.registers[y].value)
-      print(sprite)
+      # print()
+      # print(self.I.value, self.registers[x].value, self.registers[y].value)
+      # print(sprite)
     elif identifier == 0xE000:
       if opcode & 0x009E: # Ex9E - SKP Vx
         pass # TODO: Figure out keyboard input
