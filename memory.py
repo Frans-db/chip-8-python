@@ -9,6 +9,19 @@ class Memory:
   def __setitem__(self, key, value):
     self.memory[key] = value & 0xFF
 
+  def __len__(self):
+    return len(self.memory)
+
+  def __iter__(self):
+    self.n = 0
+    return self
+
+  def __next__(self):
+    if self.n < len(self):
+      self.n += 1
+      return self.memory[self.n - 1]
+    raise StopIteration
+
   def initialize_digits(self):
     digits = [
         0xF0, 0x90, 0x90, 0x90, 0xF0, # 0

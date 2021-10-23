@@ -7,3 +7,6 @@ class Stack:
 
   def __setitem__(self, key, value):
     self.stack[key] = value & 0xFFFF
+
+  def __len__(self):
+    return len(self.memory)
