@@ -115,12 +115,17 @@ class CPU:
     elif identifier == 0xC000: # Cxkk - RND Vx, byte
       self.registers[x].value = random.randint(0, 255) & (opcode & 0x00FF)
     elif identifier == 0xD000: # Dxyn - DRW Vx, Vy, nibble
+      self.registers[0xF].value = 0
       for i in range(opcode & 0x000F):
         for j,value in enumerate(bin(self.memory[self.I.value + i])[2:].zfill(8)):
           if int(value) < 1:
             continue
           if self.display.draw_pixel(self.registers[x].value+j, self.registers[y].value+i):
             self.registers[0xF].value = 1
+      if self.registers[0xF].value == 1:
+        print('Collision detected')
+      else:
+        print('No collision detected')
     elif identifier == 0xE000:
       if opcode & 0x009E: # Ex9E - SKP Vx
         if self.keyboard.is_pressed(self.registers[x].value):
@@ -150,10 +155,10 @@ class CPU:
         self.memory[self.I.value + 1] = math.floor((value % 100) / 10)
         self.memory[self.I.value + 2] = math.floor(value % 10)
       elif opcode & 0x00FF == 0x0055: # Fx55 - LD [I], Vx
-        for i in range(16):
+        for i in range(x+1):
           self.memory[self.I.value + i] = self.registers[i].value
       elif opcode & 0x00FF == 0x0065: # Fx65 - LD Vx, [I]
-        for i in range(16):
+        for i in range(x+1):
           self.registers[i].value = self.memory[self.I.value + i]
     else:
       raise Exception('Opcode not implemented')

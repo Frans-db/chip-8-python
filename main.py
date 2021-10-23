@@ -40,7 +40,7 @@ def main():
     keyboard.on_release_key(key, on_release)
 
 
-  rom_location = 'roms/Particle Demo [zeroZshadow, 2008].ch8'
+  rom_location = 'roms/Sirpinski [Sergey Naydenov, 2010].ch8'
   with open(rom_location, 'rb') as f:
     rom = f.read()
 
