@@ -18,8 +18,6 @@ def main():
   with open(rom_location, 'rb') as f:
     rom = f.read()
 
-  print(rom[544 - 0x200 : 544 - 0x200 + 8])
-  return
   cpu = CPU()
   cpu.load_rom(rom)
   while True:

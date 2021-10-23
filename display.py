@@ -10,7 +10,6 @@ class Display:
       self.display.append(row)
 
   def clear(self):
-    print('Clear!')
     for y in range(self.height):
       for x in range(self.width):
         self.display[y][x] = 0
