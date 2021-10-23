@@ -8,6 +8,8 @@ authors = ["Frans de Boer <frans-de-boer@hotmail.com>"]
 python = ">=3.9,<3.11"
 opencv-python = "^4.5.4"
 Eel = "^0.14.0"
+keyboard = "^0.13.5"
+pynput = "^1.7.4"
 
 [tool.poetry.dev-dependencies]
 
