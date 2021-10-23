@@ -1,4 +1,5 @@
 import unittest
+from cpu import CPU
 from memory import Memory
 
 from register import Register, Register16Bit
@@ -69,6 +70,27 @@ class TestStack(unittest.TestCase):
       self.stack[i] = 2**16 + i
     for i,_ in enumerate(self.stack):
       self.assertEqual(self.stack[i], i)
+
+class TestCPU(unittest.TestCase):
+  def setUp(self) -> None:
+    self.cpu = CPU()
+  
+  def test_7xkk_1(self): # # 7xkk - ADD Vx, byte
+    self.cpu.execute_opcode(0x7021)
+    self.assertEqual(self.cpu.registers[0].value, 0x21)
+
+  def test_7xkk_2(self): # # 7xkk - ADD Vx, byte
+    self.cpu.execute_opcode(0x7021)
+    self.cpu.execute_opcode(0x7052)
+    self.cpu.execute_opcode(0x7129)
+    self.assertEqual(self.cpu.registers[0].value, 0x73)
+    self.assertEqual(self.cpu.registers[1].value, 0x29)
+
+  def test_7xkk_3(self): # # 7xkk - ADD Vx, byte
+    self.cpu.execute_opcode(0x70FF)
+    self.cpu.execute_opcode(0x7002)
+    self.assertEqual(self.cpu.registers[0].value, 0x01)
+  
 
 if __name__ == '__main__':
   unittest.main()
