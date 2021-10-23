@@ -1,1 +1,2 @@
 # python-chip-8
+Python CHIP-8 emulator created following instructions from https://www.freecodecamp.org/news/creating-your-very-own-chip-8-emulator/ and http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
