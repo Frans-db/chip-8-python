@@ -5,10 +5,9 @@ import numpy as np
 import utils
 
 def main():
-  rom_location = 'roms/Particle Demo [zeroZshadow, 2008].ch8'
+  rom_location = 'roms/Framed MK2 [GV Samways, 1980].ch8'
   with open(rom_location, 'rb') as f:
     rom = f.read()
-  # rom = [0x60, 0x00, 0x61, 0x00, 0xA0, 5, 0xD0, 0x15]
 
   cpu = CPU()
   cpu.load_rom(rom)
@@ -16,8 +15,16 @@ def main():
     opcode, assembly = cpu.step()
     # print([cpu.registers[r].value for r in cpu.registers], cpu.PC.value, cpu.SP.value, cpu.I.value)
     if 'DRW' in assembly:
-      cpu.display.prettyprint()
-      dp = np.array(cpu.display.display, dtype='uint8') * 255
+      scaling = 8
+      scaled = []
+      for row in cpu.display.display:
+        new_row = []
+        for value in row:
+          for _ in range(scaling):
+            new_row.append(value)
+        for _ in range(scaling):
+          scaled.append(new_row)
+      dp = np.array(scaled, dtype='uint8') * 255
       cv2.imshow('test', dp)
       cv2.waitKey(1)
 
