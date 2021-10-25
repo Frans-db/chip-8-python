@@ -11,21 +11,21 @@ from virtualkeyboard import Keyboard
 import utils
 
 class CPU:
+  registers: dict[str, Register] = {}
+  I = Register16Bit('I')
+  PC = Register16Bit('PC')
+  SP = Register16Bit('SP')
+
+  DT = Register('delay')
+  ST = Register('sound')
+
+  memory = Memory()
+  stack = Stack()
+
+  display = Display()
+  keyboard = Keyboard()
+
   def __init__(self) -> None:
-    self.registers: dict[str, Register] = {}
-    self.I = Register16Bit('I')
-    self.PC = Register16Bit('PC')
-    self.SP = Register16Bit('SP')
-
-    self.DT = Register('delay')
-    self.ST = Register('sound')
-
-    self.memory = Memory()
-    self.stack = Stack()
-
-    self.display = Display()
-    self.keyboard = Keyboard()
-
     for i in range(0, 16):
       self.registers[i] = Register(f'v{hex(i)[2:]}')
     self.PC.value = 0x200
@@ -37,15 +37,14 @@ class CPU:
     if self.ST.value > 0:
       self.ST.value -= 1
     opcode = self.memory[self.PC.value] << 8 | self.memory[self.PC.value + 1]
-    self.execute_opcode(opcode)
-    return opcode, utils.convert_opcode(opcode, include_opcode=False)
+    return self.execute_opcode(opcode)
 
   def load_rom(self, rom):
     for i,value in enumerate(rom):
       self.memory[0x200 + i] = value
 
   def execute_opcode(self, opcode) -> None:
-    print(f'{self.PC.value} - {utils.convert_opcode(opcode)}')
+    # print(f'{self.PC.value} - {utils.convert_opcode(opcode)}')
     self.PC.value += 2
 
     start = (opcode & 0xF000) >> 12
@@ -61,6 +60,7 @@ class CPU:
     if start == 0x0:
       if nnn == 0x0E0: # 00E0 - CLS 
         self.display.clear()
+        return True
       elif nnn == 0x0EE: # 00EE - RET
         self.SP.value -= 1
         self.PC.value = self.stack[self.SP.value]
@@ -104,7 +104,7 @@ class CPU:
           self.flag.value = 1
         rx.value -= ry.value
       elif end == 0x6: # 8xy6 - SHR Vx {, Vy}
-        self.flag.name = rx.value & 0x001
+        self.flag.value = rx.value & 0x001
         rx.value >>= 1
       elif end == 0x7: # 8xy7 - SUBN Vx, Vy
         self.flag.value = 0
@@ -131,9 +131,10 @@ class CPU:
             continue
           if self.display.draw_pixel(rx.value+j, ry.value+i):
             self.flag.value = 1
+      return True
     elif start == 0xE:
       if kk == 0x9E: # Ex9E - SKP Vx
-        if self.keyboard.is_pressed(rx.value.value):
+        if self.keyboard.is_pressed(rx.value):
           self.PC.value += 2
       elif kk == 0xA1: #ExA1 - SKNP Vx
         if not self.keyboard.is_pressed(rx.value):
@@ -166,3 +167,4 @@ class CPU:
           self.registers[i].value = self.memory[self.I.value + i]
     else:
       raise Exception('Opcode not implemented')
+    return False
