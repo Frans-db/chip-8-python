@@ -40,7 +40,7 @@ def main():
     keyboard.on_release_key(key, on_release)
 
 
-  rom_location = 'roms/Sirpinski [Sergey Naydenov, 2010].ch8'
+  rom_location = 'roms/Breakout (Brix hack) [David Winter, 1997].ch8'
   with open(rom_location, 'rb') as f:
     rom = f.read()
 

@@ -29,6 +29,7 @@ class CPU:
     for i in range(0, 16):
       self.registers[i] = Register(f'v{hex(i)[2:]}')
     self.PC.value = 0x200
+    self.flag = self.registers[0xF]
 
   def step(self):
     if self.DT.value > 0:
@@ -46,118 +47,121 @@ class CPU:
   def execute_opcode(self, opcode) -> None:
     print(f'{self.PC.value} - {utils.convert_opcode(opcode)}')
     self.PC.value += 2
-    identifier = opcode & 0xF000
+
+    start = (opcode & 0xF000) >> 12
+    end = (opcode & 0x000F)
     x = (opcode & 0x0F00) >> 8
     y = (opcode & 0x00F0) >> 4
-    if identifier == 0x0000:
-      if opcode & 0x0FFF == 0x00E0: # 00E0 - CLS 
+    nnn = (opcode & 0x0FFF)
+    kk = (opcode & 0x00FF)
+    rx = self.registers[x]
+    ry = self.registers[y]
+
+
+    if start == 0x0:
+      if nnn == 0x0E0: # 00E0 - CLS 
         self.display.clear()
-      elif opcode & 0x0FFF == 0x00EE: # 00EE - RET
+      elif nnn == 0x0EE: # 00EE - RET
         self.SP.value -= 1
         self.PC.value = self.stack[self.SP.value]
-    elif identifier == 0x1000: # 1nnn - JP ADDR
-      self.PC.value = opcode & 0x0FFF
-    elif identifier == 0x2000: # 2nnn - CALL addr
+    elif start == 0x1: # 1nnn - JP ADDR
+      self.PC.value = nnn
+    elif start == 0x2: # 2nnn - CALL addr
       self.stack[self.SP.value] = self.PC.value
-      self.PC.value = opcode & 0x0FFF
+      self.PC.value = nnn
       self.SP.value += 1
-    elif identifier == 0x3000: # 3xkk - SE Vx, byte
-      if self.registers[x].value == opcode & 0x00FF:
+    elif start == 0x3: # 3xkk - SE Vx, byte
+      if rx.value == kk:
         self.PC.value += 2
-    elif identifier == 0x4000: # 4xkk - SNE Vx, byte
-      if self.registers[x].value != opcode & 0x00FF:
+    elif start == 0x4: # 4xkk - SNE Vx, byte
+      if rx.value != kk:
         self.PC.value += 2 
-    elif identifier == 0x5000: # 5xy0 - SE, Vx, Vy:
-      if self.registers[x].value == self.registers[y].value:
+    elif start == 0x5: # 5xy0 - SE, Vx, Vy:
+      if rx.value == ry.value:
         self.PC.value += 2 
-    elif identifier == 0x6000: # 6xkk - LD Vx, byte
-      self.registers[x].value = (opcode & 0x00FF)
-    elif identifier == 0x7000: # 7xkk - ADD Vx, byte:
-      self.registers[x].value += (opcode & 0x00FF)
-    elif identifier == 0x8000:
-      if opcode & 0x000F == 0x0000: # 8xy0 - LD Vx, Vy
-        self.registers[x].value = self.registers[y].value
-      elif opcode & 0x000F == 0x0001: # 8xy1 - OR Vx, Vy
-        self.registers[x].value |= self.registers[y].value
-      elif opcode & 0x000F == 0x0002: # 8xy2 - AND Vx, Vy
-        self.registers[x].value &= self.registers[y].value
-      elif opcode & 0x000F == 0x0003: # 8xy3 - XOR Vx, Vy
-        self.registers[x].value ^= self.registers[y].value
-      elif opcode & 0x000F == 0x0004: # 8xy4 - ADD Vx, Vy
-        result = self.registers[x].value + self.registers[y].value
-        self.registers[0xF].value = 0
+    elif start == 0x6: # 6xkk - LD Vx, byte
+      rx.value = kk
+    elif start == 0x7: # 7xkk - ADD Vx, byte:
+      rx.value += kk
+    elif start == 0x8:
+      if end == 0x0: # 8xy0 - LD Vx, Vy
+        rx.value = ry.value
+      elif end == 0x1: # 8xy1 - OR Vx, Vy
+        rx.value |= ry.value
+      elif end == 0x2: # 8xy2 - AND Vx, Vy
+        rx.value &= ry.value
+      elif end == 0x3: # 8xy3 - XOR Vx, Vy
+        rx.value ^= ry.value
+      elif end == 0x4: # 8xy4 - ADD Vx, Vy
+        result = rx.value + ry.value
+        self.flag.value = 0
         if result > 255:
-          self.registers[0xF].value = 1
-        self.registers[x].value = result
-      elif opcode & 0x000F == 0x0005: # 8xy5 - SUB Vx, Vy
-        self.registers[0xF].value = 0
-        if self.registers[x].value > self.registers[y].value:
-          self.registers[0xF].value = 1
-        self.registers[x].value -= self.registers[y].value
-      elif opcode & 0x000F == 0x0006: # 8xy6 - SHR Vx {, Vy}
-        self.registers[0xF].value = self.registers[x].value & 0x01
-        self.registers[x].value = (self.registers[x].value >> 1)
-      elif opcode & 0x000F == 0x0007: # 8xy7 - SUBN Vx, Vy
-        self.registers[0xF].value = 0
-        if self.registers[y].value > self.registers[x].value:
-          self.registers[0xF].value = 1
-        self.registers[x].value = (self.registers[x].value - self.registers[y].value)
-      elif opcode & 0x000F == 0x000E: # 8xyE - SHL Vx {, Vy}
-        self.registers[0xF].value = self.registers[x].value & 0x80
-        self.registers[x].value = (self.registers[x].value << 1)
-    elif identifier == 0x9000: # 9xy0 - SNE Vx, Vy
-      if self.registers[x].value != self.registers[y].value:
+          self.flag.value = 1
+        rx.value = result
+      elif end == 0x5: # 8xy5 - SUB Vx, Vy
+        self.flag.value = 0
+        if rx.value > ry.value:
+          self.flag.value = 1
+        rx.value -= ry.value
+      elif end == 0x6: # 8xy6 - SHR Vx {, Vy}
+        self.flag.name = rx.value & 0x001
+        rx.value >>= 1
+      elif end == 0x7: # 8xy7 - SUBN Vx, Vy
+        self.flag.value = 0
+        if ry.value > rx.value:
+          self.flag.value = 1
+        rx.value = (ry.value - rx.value)
+      elif end == 0xE: # 8xyE - SHL Vx {, Vy}
+        self.flag.value = rx.value & 0x80
+        rx.value <<= 1
+    elif start == 0x9: # 9xy0 - SNE Vx, Vy
+      if rx.value != ry.value:
         self.PC.value += 2 
-    elif identifier == 0xA000: # Annn - LD I, addr
-      self.I.value = opcode & 0x0FFF
-    elif identifier == 0xB000: # Bnnn - JP v0, addr
-      self.PC.value = (opcode & 0xFFF) + self.registers[0].value
-    elif identifier == 0xC000: # Cxkk - RND Vx, byte
-      self.registers[x].value = random.randint(0, 255) & (opcode & 0x00FF)
-    elif identifier == 0xD000: # Dxyn - DRW Vx, Vy, nibble
-      self.registers[0xF].value = 0
-      for i in range(opcode & 0x000F):
+    elif start == 0xA: # Annn - LD I, addr
+      self.I.value = nnn
+    elif start == 0xB: # Bnnn - JP v0, addr
+      self.PC.value = nnn + self.registers[0].value
+    elif start == 0xC: # Cxkk - RND Vx, byte
+      rx.value = random.randint(0, 255) & kk
+    elif start == 0xD: # Dxyn - DRW Vx, Vy, nibble
+      self.flag.value = 0
+      for i in range(end):
         for j,value in enumerate(bin(self.memory[self.I.value + i])[2:].zfill(8)):
           if int(value) < 1:
             continue
-          if self.display.draw_pixel(self.registers[x].value+j, self.registers[y].value+i):
-            self.registers[0xF].value = 1
-      if self.registers[0xF].value == 1:
-        print('Collision detected')
-      else:
-        print('No collision detected')
-    elif identifier == 0xE000:
-      if opcode & 0x009E: # Ex9E - SKP Vx
-        if self.keyboard.is_pressed(self.registers[x].value):
+          if self.display.draw_pixel(rx.value+j, ry.value+i):
+            self.flag.value = 1
+    elif start == 0xE:
+      if kk == 0x9E: # Ex9E - SKP Vx
+        if self.keyboard.is_pressed(rx.value.value):
           self.PC.value += 2
-      elif opcode & 0x00A1: #ExA1 - SKNP Vx
-        if not self.keyboard.is_pressed(self.registers[x].value):
+      elif kk == 0xA1: #ExA1 - SKNP Vx
+        if not self.keyboard.is_pressed(rx.value):
           self.PC.value += 2
-    elif identifier == 0xF000:
-      if opcode & 0x00FF == 0x0007: # Fx07 - LD Vx, DT
-        self.registers[x].value = self.DT.value
-      elif opcode & 0x00FF == 0x000A: # Fx0A - LD, Vx, K
+    elif start == 0xF:
+      if kk == 0x07: # Fx07 - LD Vx, DT
+        rx.value = self.DT.value
+      elif kk == 0x0A: # Fx0A - LD, Vx, K
         while True:
           if len(self.keyboard.pressed) > 0:
-            self.registers[x].value = self.keyboard.pressed[0]
+            rx.value = self.keyboard.pressed[0]
             break
-      elif opcode & 0x00FF == 0x0015: # Fx15 - LD DT, Vx
-        self.DT.value = self.registers[x].value
-      elif opcode & 0x00FF == 0x0018: # Fx18 - LD, ST, Vx
-        self.ST.value = self.registers[x].value
-      elif opcode & 0x00FF == 0x001E: # Fx1E - ADD I, Vx
-        self.I.value += self.registers[x].value
-      elif opcode & 0x00FF == 0x0029: # Fx29 - LD F, Vx
-        self.I.value = self.registers[x].value * 5
-      elif opcode & 0x00FF == 0x0033: # Fx33 - LD B, Vx
-        value = self.registers[x].value
-        self.memory[self.I.value    ] = math.floor(value / 100)
-        self.memory[self.I.value + 1] = math.floor((value % 100) / 10)
-        self.memory[self.I.value + 2] = math.floor(value % 10)
-      elif opcode & 0x00FF == 0x0055: # Fx55 - LD [I], Vx
+      elif kk == 0x15: # Fx15 - LD DT, Vx
+        self.DT.value = rx.value
+      elif kk == 0x18: # Fx18 - LD, ST, Vx
+        self.ST.value = rx.value
+      elif kk == 0x1E: # Fx1E - ADD I, Vx
+        self.I.value += rx.value
+      elif kk == 0x29: # Fx29 - LD F, Vx
+        self.I.value = rx.value * 5
+      elif kk == 0x33: # Fx33 - LD B, Vx
+        self.memory[self.I.value    ] = math.floor(rx.value / 100)
+        self.memory[self.I.value + 1] = math.floor((rx.value % 100) / 10)
+        self.memory[self.I.value + 2] = math.floor(rx.value % 10)
+      elif kk == 0x55: # Fx55 - LD [I], Vx
         for i in range(x+1):
           self.memory[self.I.value + i] = self.registers[i].value
-      elif opcode & 0x00FF == 0x0065: # Fx65 - LD Vx, [I]
+      elif kk == 0x65: # Fx65 - LD Vx, [I]
         for i in range(x+1):
           self.registers[i].value = self.memory[self.I.value + i]
     else:
