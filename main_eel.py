@@ -1,7 +1,8 @@
 import eel
 from random import randint
 
-from cpu import CPU
+# from cpu import CPU
+from emulator import CPU
 
 speed = 8
 

@@ -1,14 +1,12 @@
 import random
 import math
 
-from register import Register, Register16Bit
-from memory import Memory
-from stack import Stack
-
-from display import Display
-from virtualkeyboard import Keyboard
-
-import utils
+from .register import Register, Register16Bit
+from .memory import Memory
+from .stack import Stack
+from .display import Display
+from .virtualkeyboard import Keyboard
+from .utils import convert_opcode
 
 class CPU:
   registers: dict[str, Register] = {}
@@ -44,7 +42,7 @@ class CPU:
       self.memory[0x200 + i] = value
 
   def execute_opcode(self, opcode) -> None:
-    # print(f'{self.PC.value} - {utils.convert_opcode(opcode)}')
+    # print(f'{self.PC.value} - {convert_opcode(opcode)}')
     self.PC.value += 2
 
     start = (opcode & 0xF000) >> 12

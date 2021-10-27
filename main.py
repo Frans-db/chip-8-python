@@ -2,7 +2,8 @@ import cv2
 import numpy as np
 import keyboard
 
-from cpu import CPU
+# from cpu import CPU
+from emulator import CPU
 
 conversions = {
     '0': 0x0,

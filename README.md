@@ -7,4 +7,11 @@ Python 3.9.6
 ## Structure
 TODO: Create proper package structure
 
-The emulation functionality is all handled in the CPU class in cpu.py. 
+The emulation functionality is all handled in the CPU class in cpu.py. This file runs without any extra packages.
+
+For displaying and I/O extra packages are needed. I made 2 examples (main.py and main_eel.py)
+
+**main.py** used the python-opencv (cv2) and keyboard packages to handle I/O
+
+**main_eel.py** used eel to create a web interface to handle I/O
+
