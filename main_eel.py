@@ -6,7 +6,7 @@ from cpu import CPU
 speed = 8
 
 # read rom
-rom_location = 'roms/Framed MK2 [GV Samways, 1980].ch8'
+rom_location = 'roms/Breakout (Brix hack) [David Winter, 1997].ch8'
 with open(rom_location, 'rb') as f:
   rom = f.read()
 

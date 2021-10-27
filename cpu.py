@@ -44,7 +44,7 @@ class CPU:
       self.memory[0x200 + i] = value
 
   def execute_opcode(self, opcode) -> None:
-    print(f'{self.PC.value} - {utils.convert_opcode(opcode)}')
+    # print(f'{self.PC.value} - {utils.convert_opcode(opcode)}')
     self.PC.value += 2
 
     start = (opcode & 0xF000) >> 12

@@ -4,10 +4,6 @@ import keyboard
 
 from cpu import CPU
 
-import cProfile
-import pstats
-import time
-
 conversions = {
     '0': 0x0,
     '1': 0x1,
@@ -82,9 +78,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # with cProfile.Profile() as pr:
     main()
-    # stats = pstats.Stats(pr)
-    # stats.sort_stats(pstats.SortKey.TIME)
-    # stats.print_stats()
-    # stats.dump_stats(filename=f'profiling/{time.time()}.prof')
