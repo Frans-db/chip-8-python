@@ -40,25 +40,13 @@ def main():
         keyboard.on_release_key(key, on_release)
 
 
-    # rom_location = 'roms/Breakout (Brix hack) [David Winter, 1997].ch8'
-    # with open(rom_location, 'rb') as f:
-    #     rom = f.read()
+    rom_location = 'roms/Breakout (Brix hack) [David Winter, 1997].ch8'
+    with open(rom_location, 'rb') as f:
+        rom = f.read()
 
-    rom = []
-    address = 0x200
-    for i in range(8):
-        vx = 8 * i
-        vi = 5 * i
-        rom += [0x60, vx, 0x61, 0x00, 0xA0, vi, 0xD0, 0x15]
-        address += 8
-    rom += [0x12, address]
-    # rom = [0x60, 0x00, 0x61, 0x00, 0xA0, 0x00, 0xD0, 0x05, 0x12, 0x08]
     cpu.load_rom(rom)
 
-    # iteration = 0
     while True:
-        # iteration += 1
-        # time.sleep(0.01)
         draw = cpu.step()
 
         # display
