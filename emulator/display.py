@@ -17,8 +17,6 @@ class Display:
   def draw_pixel(self, x, y):
     new_x = x % self.width
     new_y = y % self.height
-    if new_x < 0 or new_y < 0:
-      raise Exception('draw outside bounds')
     collision = self.display[new_y][new_x] == 1
     self.display[new_y][new_x] = self.display[new_y][new_x] ^ 1
     return collision

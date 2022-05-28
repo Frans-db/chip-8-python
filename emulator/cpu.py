@@ -44,7 +44,7 @@ class CPU:
   def execute_opcode(self, opcode) -> None:
     # print(f'{self.PC.value} - {convert_opcode(opcode)}')
     self.PC.value += 2
-
+    # setup variables used in instructions
     start = (opcode & 0xF000) >> 12
     end = (opcode & 0x000F)
     x = (opcode & 0x0F00) >> 8
@@ -53,7 +53,6 @@ class CPU:
     kk = (opcode & 0x00FF)
     rx = self.registers[x]
     ry = self.registers[y]
-
 
     if start == 0x0:
       if nnn == 0x0E0: # 00E0 - CLS 
